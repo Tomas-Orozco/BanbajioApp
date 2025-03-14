@@ -31,7 +31,7 @@ export default function SeguimientoCreditoScreen() {
 
   const router = useRouter();
   const usuarioId = 1;
-  const BACKEND_BASE_URL = "http://192.168.1.97:4000";
+  const BACKEND_BASE_URL = "http://192.168.68.117:4000";
 
   useEffect(() => {
     const fetchTrimestres = async () => {
@@ -81,8 +81,8 @@ export default function SeguimientoCreditoScreen() {
     const formData = new FormData();
     formData.append("usuario_id", usuarioId.toString());
     formData.append("trimestre_id", trimestreEncontrado.id.toString());
-    formData.append("cantidad", cantidad);
-    formData.append("descripcion_documento", descripcion);
+    formData.append("cantidad_factura", cantidad);
+    formData.append("descripcion", descripcion);
     formData.append("comentarios_adicionales", comentarios);
 
     if (documento?.uri) {
@@ -106,7 +106,6 @@ export default function SeguimientoCreditoScreen() {
       if (response.ok) {
         Alert.alert("Éxito", "Comprobante guardado correctamente.");
         setStage("success");
-        setTimeout(() => setStage("idle"), 2000);
       } else {
         Alert.alert("Error", data.mensaje || "No se pudo guardar.");
         setStage("idle");
@@ -116,25 +115,39 @@ export default function SeguimientoCreditoScreen() {
       Alert.alert("Error de conexión", "Hubo un problema con la conexión al servidor.");
       setStage("idle");
     }
-  
-    useEffect(() => {
-      const fetchUserName = async () => {
-        const storedName = await AsyncStorage.getItem('userName');
-        if (storedName) setUserName(storedName);
-      };
-  
-      fetchUserName();
-    }, []);
   };
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      const storedName = await AsyncStorage.getItem('userName');
+      if (storedName) setUserName(storedName);
+    };
+
+    fetchUserName();
+  }, []);
+
+  useEffect(() => {
+    if (stage === "success") {
+      setTrimestreNombre("");
+      setCantidad("");
+      setDescripcion("");
+      setComentarios("");
+      setDocName("");
+      setDocumento(null);
+
+      setTimeout(() => {
+        setStage("idle");
+        router.replace("/historial-credito"); 
+      }, 3000);
+    }
+  }, [stage, router]);
 
   return (
     <View style={styles.container}>
-    <View style={styles.header}>
-      <Text style={styles.greeting}>Hola, {userName || "Juan"}!</Text>
-      <Text style={styles.subtitle}>Seguimiento de tu crédito</Text>
-    </View>
-  
-      
+      <View style={styles.header}>
+        <Text style={styles.greeting}>Hola, {userName || "Julia"}!</Text>
+        <Text style={styles.subtitle}>Seguimiento de tu crédito</Text>
+      </View>
 
       <View style={styles.formContainer}>
         <Text style={styles.label}>Escribe el nombre del Trimestre:</Text>
@@ -146,8 +159,8 @@ export default function SeguimientoCreditoScreen() {
         />
 
         <TextInput style={styles.input} placeholder="Cantidad" keyboardType="numeric" value={cantidad} onChangeText={setCantidad} />
-        <TextInput style={styles.input} placeholder="descripcion" value={descripcion} onChangeText={setDescripcion} />
-        <TextInput style={styles.input} placeholder="comentarios " value={comentarios} onChangeText={setComentarios} />
+        <TextInput style={styles.input} placeholder="Descripción" value={descripcion} onChangeText={setDescripcion} />
+        <TextInput style={styles.input} placeholder="Comentarios" value={comentarios} onChangeText={setComentarios} />
 
         <TouchableOpacity style={styles.uploadButton} onPress={handlePickDocument}>
           <Text style={styles.uploadButtonText}>Cargar Documento</Text>
@@ -159,7 +172,7 @@ export default function SeguimientoCreditoScreen() {
       </View>
 
       <View style={{ marginVertical: 20 }}>
-        <AsesorCard nombre="Mario Garcia" cargo="Asesor de crédito" telefono="+526141088379" imagenUrl="https://randomuser.me/api/portraits/men/32.jpg" />
+        <AsesorCard nombre="Juan Perez" cargo="Asesor de crédito" telefono="+526141088379" imagenUrl="https://randomuser.me/api/portraits/men/32.jpg" />
       </View>
     </View>
   );

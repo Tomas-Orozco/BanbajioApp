@@ -30,7 +30,7 @@ export default function HistorialComprobantes() {
   const [creditoAsignado, setCreditoAsignado] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const BACKEND_URL = 'http://192.168.1.97:4000';
+  const BACKEND_URL = 'http://192.168.68.117:4000';
   const router = useRouter();
 
   useEffect(() => {
@@ -106,7 +106,7 @@ export default function HistorialComprobantes() {
         <Text style={styles.headerTitle}>Historial de tus Comprobantes</Text>
         <TouchableOpacity onPress={showLogoutOption}>
           <Image
-            source={{ uri: 'https://randomuser.me/api/portraits/men/44.jpg' }}
+            source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
             style={styles.profileImage}
           />
         </TouchableOpacity>
@@ -127,33 +127,40 @@ export default function HistorialComprobantes() {
           keyExtractor={(item) => item.trimestre_id.toString()}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={<Text style={styles.emptyText}>No hay comprobantes disponibles.</Text>}
-          renderItem={({ item }) => (
-            <View style={styles.cardContainer}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.trimestreTitle}>Trimestre {item.trimestre_nombre}</Text>
-                <Text style={styles.montoGastado}>{item.monto_gastado.toLocaleString()}$</Text>
-              </View>
-              <Text style={styles.descripcionText}>{item.descripcion}</Text>
-              <View style={styles.rowInfo}>
-                <View>
-                  <Text style={styles.infoLabel}>Total</Text>
-                  <Text style={styles.infoValue}>{item.total_credito_asignado.toLocaleString()} crédito</Text>
+          renderItem={({ item }) => {
+            const montoGastado = item.monto_gastado || 0;
+            const totalCredito = item.total_credito_asignado || 0
+            const porcentajeCalculado = ((montoGastado / 100000 ) * 100).toFixed(2);
+            
+            return (
+              <View style={styles.cardContainer}>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.trimestreTitle}>Trimestre {item.trimestre_nombre}</Text>
+                  <Text style={styles.montoGastado}>{montoGastado.toLocaleString()}$</Text>
                 </View>
-                <View style={styles.porcentajeContainer}>
-                  <Text style={styles.porcentajeText}>{item.porcentaje}%</Text>
+                <Text style={styles.descripcionText}>{item.descripcion}</Text>
+                <View style={styles.rowInfo}>
+                  <View>
+                    <Text style={styles.infoLabel}>Total</Text>
+                    <Text style={styles.infoValue}>{totalCredito.toLocaleString()} crédito</Text>
+                  </View>
+                  <View style={styles.porcentajeContainer}>
+                    <Text style={styles.porcentajeText}>{porcentajeCalculado}%</Text>
+                  </View>
+                </View>
+                <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${Number(porcentajeCalculado)}%` }]} />
+
+
                 </View>
               </View>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${item.porcentaje}%` }]} />
-              </View>
-            </View>
-          )}
+            );
+          }}
         />
       )}
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

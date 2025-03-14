@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -14,11 +14,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-
+import { useFocusEffect } from '@react-navigation/native';
 
 interface Alerta {
   id: number;
-  descripcion: string;
+  descripcion_alertas: string;
   asesor_id: number;
   usuario_id: number;
   trimestre_id: number;
@@ -30,15 +30,9 @@ const AlertasScreen = () => {
 
   const [alertas, setAlertas] = useState<Alerta[]>([]);
 
-
   const bellShakeValue = useRef(new Animated.Value(0)).current;
-
-
-  const BACKEND_URL = 'http://192.168.1.97:4000';
-  
-
-  const usuarioId = 1; 
-
+  const BACKEND_URL = 'http://192.168.68.117:4000';
+  const usuarioId = 1;
 
   useEffect(() => {
     const bellShakeAnimation = Animated.sequence([
@@ -77,22 +71,23 @@ const AlertasScreen = () => {
     outputRange: ['-10deg', '0deg', '10deg'],
   });
 
-  // =======================================================
-  // 3) USEEFFECT PARA OBTENER ALERTAS (fetch)
-  // =======================================================
-  useEffect(() => {
-    const fetchAlertas = async () => {
-      try {
-        const resp = await fetch(`${BACKEND_URL}/alertas/${usuarioId}`);
-        const data = await resp.json();
-        setAlertas(data);
-      } catch (error) {
-        console.error('🔥 Error al obtener alertas:', error);
-      }
-    };
+  
+  const fetchAlertas = async () => {
+    try {
+      const resp = await fetch(`${BACKEND_URL}/alertas/${usuarioId}`);
+      const data = await resp.json();
+      setAlertas(data);
+    } catch (error) {
+      console.error('Error al obtener alertas:', error);
+    }
+  };
 
-    fetchAlertas();
-  }, []);
+  
+  useFocusEffect(
+    useCallback(() => {
+      fetchAlertas();
+    }, [])
+  );
 
   const handleLogout = () => {
     router.replace('/');
@@ -109,14 +104,13 @@ const AlertasScreen = () => {
     );
   };
 
-
   const renderItem = ({ item }: { item: Alerta }) => (
     <View style={styles.alertCard}>
       <View style={styles.alertCardContent}>
         <Ionicons name="alert-circle-outline" size={24} color="#666" style={styles.alertIcon} />
         <View style={styles.alertTextContainer}>
           <Text style={styles.alertTitle}>{`ID Alerta: ${item.id}`}</Text>
-          <Text style={styles.alertSubtitle}>Descripción: {item.descripcion}</Text>
+          <Text style={styles.alertSubtitle}>Descripción: {item.descripcion_alertas}</Text>
           <Text style={styles.alertSubtitle}>Asesor: {item.asesor_nombre}</Text>
           <Text style={styles.alertSubtitle}>Fecha: {item.fecha_creacion}</Text>
         </View>
@@ -124,14 +118,10 @@ const AlertasScreen = () => {
     </View>
   );
 
-  // =======================================================
-  // 6) RENDER PRINCIPAL
-  // =======================================================
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Sección de perfiles: al tocar la imagen se dispara el logout */}
       <View style={styles.profilesSection}>
         <TouchableOpacity 
           style={styles.profileContainer} 
@@ -144,7 +134,6 @@ const AlertasScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Header con campana animada */}
       <View style={styles.header}>
         <Animated.View style={{ transform: [{ rotate: bellRotation }] }}>
           <Ionicons name="notifications-outline" size={32} color="#000" />
@@ -152,7 +141,6 @@ const AlertasScreen = () => {
         <Text style={styles.alertasTitle}>Alertas</Text>
       </View>
 
-      {/* Lista de Alertas */}
       <FlatList
         data={alertas}
         keyExtractor={(item) => item.id.toString()}
@@ -169,9 +157,8 @@ const AlertasScreen = () => {
 
 export default AlertasScreen;
 
-// =======================================================
-// 7) ESTILOS
-// =======================================================
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
